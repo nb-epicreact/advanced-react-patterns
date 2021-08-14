@@ -8,6 +8,7 @@ import {Switch} from '../switch'
 // 📜 https://reactjs.org/docs/context.html#reactcreatecontext
 
 const ToggleContext = React.createContext()
+ToggleContext.displayName = 'ToggleContext'
 
 function Toggle(props) {
   const [on, setOn] = React.useState(false)
@@ -20,7 +21,7 @@ function useToggle() {
   const context = React.useContext(ToggleContext)
 
   if (!context) {
-    throw new Error('Must use the ToggleContext within a provider')
+    throw new Error('Must use the ToggleContext within a <Toggle />')
   }
 
   return context
