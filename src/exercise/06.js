@@ -29,6 +29,49 @@ function toggleReducer(state, {type, initialState}) {
   }
 }
 
+function useControlledSwitchWarning(
+  controlPropValue,
+  controlPropName,
+  componentName,
+) {
+  const isControlled = controlPropValue != null
+  const {current: wasControlled} = React.useRef(isControlled)
+  React.useEffect(() => {
+    warning(
+      !(isControlled && !wasControlled),
+      `${componentName} is changing from uncontrolled to controlled. Check the ${controlPropName} prop`,
+    )
+    warning(
+      !(!isControlled && wasControlled),
+      `${componentName} is changing from controlled to uncontrolled. Check the ${controlPropName} prop`,
+    )
+  }, [componentName, controlPropName, isControlled, wasControlled])
+}
+
+function useReadOnlySwitchWarning(
+  controlPropValue,
+  onChangeFunction,
+  readOnlyValue,
+  controlPropName,
+  componentName,
+) {
+  const hasOnChange = Boolean(onChangeFunction)
+  const isControlled = controlPropValue != null
+  React.useEffect(() => {
+    warning(
+      !(!hasOnChange && isControlled && !readOnlyValue),
+      `${componentName} is not readOnly and an onChange function is required if passing the ${controlPropName} prop.`,
+    )
+  }, [
+    componentName,
+    controlPropName,
+    controlPropValue,
+    hasOnChange,
+    isControlled,
+    readOnlyValue,
+  ])
+}
+
 function useToggle({
   initialOn = false,
   reducer = toggleReducer,
@@ -43,25 +86,9 @@ function useToggle({
 
   const on = onIsControlled ? controlledOn : state.on
 
-  const {current: onWasControlled} = React.useRef(onIsControlled)
-  React.useEffect(() => {
-    warning(
-      !(onIsControlled && !onWasControlled),
-      'on is changing from uncontrolled to be controlled.',
-    )
-    warning(
-      !(!onIsControlled && onWasControlled),
-      'on is changing from controlled to be uncontrolled.',
-    )
-  }, [controlledOn, onIsControlled, onWasControlled])
+  useControlledSwitchWarning(controlledOn, 'on', 'useToggle')
 
-  const hasOnChange = Boolean(onChange)
-  React.useEffect(() => {
-    warning(
-      !(!hasOnChange && controlledOn && !readOnly),
-      'onChange function required if passing an on prop',
-    )
-  }, [controlledOn, hasOnChange, readOnly])
+  useReadOnlySwitchWarning(controlledOn, onChange, readOnly, 'on', 'useToggle')
 
   function dispatchWithOnChange(action) {
     if (!onIsControlled) {
@@ -128,7 +155,7 @@ function App() {
   return (
     <div>
       <div>
-        <Toggle on={bothOn} onChange={handleToggleChange} />
+        <Toggle on={bothOn} />
         <Toggle on={bothOn} onChange={handleToggleChange} />
       </div>
       {timesClicked > 4 ? (
