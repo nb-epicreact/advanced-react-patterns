@@ -37,14 +37,16 @@ function useControlledSwitchWarning(
   const isControlled = controlPropValue != null
   const {current: wasControlled} = React.useRef(isControlled)
   React.useEffect(() => {
-    warning(
-      !(isControlled && !wasControlled),
-      `${componentName} is changing from uncontrolled to controlled. Check the ${controlPropName} prop`,
-    )
-    warning(
-      !(!isControlled && wasControlled),
-      `${componentName} is changing from controlled to uncontrolled. Check the ${controlPropName} prop`,
-    )
+    if (process.env.NODE_ENV !== 'production') {
+      warning(
+        !(isControlled && !wasControlled),
+        `${componentName} is changing from uncontrolled to controlled. Check the ${controlPropName} prop`,
+      )
+      warning(
+        !(!isControlled && wasControlled),
+        `${componentName} is changing from controlled to uncontrolled. Check the ${controlPropName} prop`,
+      )
+    }
   }, [componentName, controlPropName, isControlled, wasControlled])
 }
 
@@ -58,10 +60,12 @@ function useReadOnlySwitchWarning(
   const hasOnChange = Boolean(onChangeFunction)
   const isControlled = controlPropValue != null
   React.useEffect(() => {
-    warning(
-      !(!hasOnChange && isControlled && !readOnlyValue),
-      `${componentName} is not readOnly and an onChange function is required if passing the ${controlPropName} prop.`,
-    )
+    if (process.env.NODE_ENV !== 'production') {
+      warning(
+        !(!hasOnChange && isControlled && !readOnlyValue),
+        `${componentName} is not readOnly and an onChange function is required if passing the ${controlPropName} prop.`,
+      )
+    }
   }, [
     componentName,
     controlPropName,
@@ -87,7 +91,6 @@ function useToggle({
   const on = onIsControlled ? controlledOn : state.on
 
   useControlledSwitchWarning(controlledOn, 'on', 'useToggle')
-
   useReadOnlySwitchWarning(controlledOn, onChange, readOnly, 'on', 'useToggle')
 
   function dispatchWithOnChange(action) {
@@ -155,7 +158,7 @@ function App() {
   return (
     <div>
       <div>
-        <Toggle on={bothOn} />
+        <Toggle on={bothOn} onChange={handleToggleChange} />
         <Toggle on={bothOn} onChange={handleToggleChange} />
       </div>
       {timesClicked > 4 ? (
